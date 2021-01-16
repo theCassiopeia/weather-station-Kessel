@@ -40,6 +40,9 @@ class DS18B20(object):
             if equal_pos != -1:
                 temp_string = temp_line[equal_pos+2:]
                 temp_c = float(temp_string)/1000.0
+                if temp_c == 85:
+                    # 85 = power-on reset value
+                    temp_c = None
         
         return temp_c
 

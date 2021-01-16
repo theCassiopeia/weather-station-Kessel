@@ -8,6 +8,7 @@ import os
 import io
 import gzip
 
+debug = False
 
 def gunzip_bytes(bytes_obj):
     in_ = io.BytesIO()
@@ -37,15 +38,18 @@ class MysqliteDatabase:
         for key, value in credentials.items():  # remove whitespace
             credentials[key] = value.strip()
 
-        # print(credentials["DATABASE"])
+        if debug:
+            print(credentials["DATABASE"])
         db_file = "/home/pi/Sqlite/" + credentials["DATABASE"]
-        # print(db_file)
+        if debug:
+            print(db_file)
         self.connection = sqlite3.connect(db_file)
         self.cursor = self.connection.cursor()
 
     def execute(self, query, params=()):
         try:
-            # print(query, params)
+            if debug:
+                print(query, params)
             self.cursor.execute(query, params)
             self.connection.commit()
         except:
@@ -139,12 +143,15 @@ class WeatherDatabase:
         self.db = MysqliteDatabase()
         self.insert_template = "INSERT INTO WEATHER_MEASUREMENT (TEMP_DS18B20, TEMP_BMP180, " \
                                "AIR_QUALITY, AIR_PRESSURE, HUMIDITY, WIND_DIRECTION, WIND_SPEED, WIND_GUST_SPEED, " \
-                               "RAINFALL, IMAGE_LINK) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+                               "RAINFALL, UV_INDEX, AMBIENT_LIGHT, IR_LIGHT, IMAGE_LINK) " \
+                               "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
         #
         # removed the CREATED filed. Is automatically filled by SQLite since field = default CURRENT_TIMESTAMP
         #
-        self.update_template = "UPDATE WEATHER_MEASUREMENT SET REMOTE_ID=%s WHERE ID=%s;"
+        self.update_template = "UPDATE WEATHER_MEASUREMENT SET REMOTE_ID=%s WHERE ID=?;"
+        self.update_google_template = ''' UPDATE WEATHER_MEASUREMENT SET UPLOADED_GOOGLE=1 WHERE ID = ?;'''
         self.upload_select_template = "SELECT * FROM WEATHER_MEASUREMENT WHERE REMOTE_ID IS NULL;"
+        self.upload_google_template = "SELECT * FROM WEATHER_MEASUREMENT WHERE UPLOADED_GOOGLE IS 0;"
 
     def is_number(self, s):
         try:
@@ -157,7 +164,7 @@ class WeatherDatabase:
         return val if val is not None else "NULL"
 
     def insert(self, ambient_temperature, ground_temperature, air_quality, air_pressure, humidity, wind_direction,
-               wind_speed, wind_gust_speed, rainfall, image_link):
+               wind_speed, wind_gust_speed, rainfall, uv_index, ambient_light, ir_light, image_link):
         # created=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")):
         params = (ambient_temperature,
                   ground_temperature,
@@ -168,13 +175,25 @@ class WeatherDatabase:
                   wind_speed,
                   wind_gust_speed,
                   rainfall,
+                  uv_index,
+                  ambient_light,
+                  ir_light,
                   image_link)
         # created)
-        # print(self.insert_template, params)
+        if debug:
+            print(self.insert_template, params)
         self.db.execute(self.insert_template, params)
 
+    def upload_google(self):
+        results = self.db.query(self.upload_google_template)
+        return results
 
-"""
+    def update_google(self, id_row):
+        params = (id_row,)
+        self.db.execute(self.update_google_template, params)
+        return
+
+    """
     def upload(self):
         results = self.db.query(self.upload_select_template)
 

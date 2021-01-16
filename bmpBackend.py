@@ -149,7 +149,7 @@ class BMP085:
         return temp
 
     def readPressure(self):
-        "Gets the compensated pressure in pascal"
+        """Gets the compensated pressure in pascal"""
         UT = 0
         UP = 0
         B3 = 0
@@ -169,7 +169,7 @@ class BMP085:
         # dsValues = True
         dsValues = False
 
-        if (dsValues):
+        if dsValues:
             UT = 27898
             UP = 23843
             self._cal_AC6 = 23153
@@ -183,17 +183,17 @@ class BMP085:
             self._cal_AC1 = 408
             self._cal_AC4 = 32741
             self.mode = self.__BMP085_ULTRALOWPOWER
-            if (self.debug):
+            if self.debug:
                 self.showCalibrationData()
 
         # True Temperature Calculations
         X1 = ((UT - self._cal_AC6) * self._cal_AC5) >> 15
         X2 = (self._cal_MC << 11) // (X1 + self._cal_MD)
         B5 = X1 + X2
-        if (self.debug):
-            print("DBG: X1 = %d" % (X1))
-            print("DBG: X2 = %d" % (X2))
-            print("DBG: B5 = %d" % (B5))
+        if self.debug:
+            print("DBG: X1 = %d" % X1)
+            print("DBG: X2 = %d" % X2)
+            print("DBG: B5 = %d" % B5)
             print("DBG: True Temperature = %.2f C" % (((B5 + 8) >> 4) / 10.0))
 
         # Pressure Calculations
@@ -202,24 +202,24 @@ class BMP085:
         X2 = (self._cal_AC2 * B6) >> 11
         X3 = X1 + X2
         B3 = (((self._cal_AC1 * 4 + X3) << self.mode) + 2) // 4
-        if (self.debug):
-            print("DBG: B6 = %d" % (B6))
-            print("DBG: X1 = %d" % (X1))
-            print("DBG: X2 = %d" % (X2))
-            print("DBG: B3 = %d" % (B3))
+        if self.debug:
+            print("DBG: B6 = %d" % B6)
+            print("DBG: X1 = %d" % X1)
+            print("DBG: X2 = %d" % X2)
+            print("DBG: B3 = %d" % B3)
 
         X1 = (self._cal_AC3 * B6) >> 13
         X2 = (self._cal_B1 * ((B6 * B6) >> 12)) >> 16
         X3 = ((X1 + X2) + 2) >> 2
         B4 = (self._cal_AC4 * (X3 + 32768)) >> 15
         B7 = (UP - B3) * (50000 >> self.mode)
-        if (self.debug):
+        if self.debug:
             print("DBG: X1 = %d" % (X1))
             print("DBG: X2 = %d" % (X2))
             print("DBG: B4 = %d" % (B4))
             print("DBG: B7 = %d" % (B7))
 
-        if (B7 < 0x80000000):
+        if B7 < 0x80000000:
             p = (B7 * 2) // B4
         else:
             p = (B7 / B4) * 2
@@ -227,30 +227,28 @@ class BMP085:
         X1 = (p >> 8) * (p >> 8)
         X1 = (X1 * 3038) >> 16
         X2 = (-7375 * p) >> 16
-        if (self.debug):
+        if self.debug:
             print("DBG: p  = %d" % (p))
             print("DBG: X1 = %d" % (X1))
             print("DBG: X2 = %d" % (X2))
 
         p = p + ((X1 + X2 + 3791) >> 4)
-        if (self.debug):
+        if self.debug:
             print("DBG: Pressure = %d Pa" % (p))
 
         return p
 
     def readAltitude(self, seaLevelPressure=101325):
-        "Calculates the altitude in meters"
+        """Calculates the altitude in meters"""
         altitude = 0.0
         pressure = float(self.readPressure())
         altitude = 44330.0 * (1.0 - pow(pressure / seaLevelPressure, 0.1903))
-        if (self.debug):
-            print("DBG: Altitude = %d" % (altitude))
+        if self.debug:
+            print("DBG: Altitude = %d" % altitude)
         return altitude
 
-        return 0
-
     def readMSLPressure(self, altitude):
-        "Calculates the mean sea level pressure"
+        """Calculates the mean sea level pressure"""
         pressure = float(self.readPressure())
         T0 = float(altitude) / 44330
         T1 = math.pow(1 - T0, 5.255)
