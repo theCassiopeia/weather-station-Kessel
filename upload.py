@@ -51,7 +51,6 @@ def login_open_sheet(spreadsheet):
         sys.exit(1)
 
 
-# TODO Get all rows from Sqlite/weather.db which have not been uploaded yet
 def getrows():
 
     """

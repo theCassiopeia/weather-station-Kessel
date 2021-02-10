@@ -54,13 +54,6 @@ try:
 
     # wind_average = wind_dir.get_value(10)  # ten seconds
 
-    # TODO : first lecture from temp_probe gives a strange value (85) instead something like 18-23 degrees C.
-    #  It either should be checked when read or a initial reading needs to be discarded.
-    #  16JAN2021 update : check made if temp == 85; if so, "None"  is returned.
-    #  to be checked if no value is inserted in Sqlite database
-
-    # TODO : add column to capture UV measurement
-
     # TODO : add table (?) or at least columns to capture gyroscope sensors & magneto / accelerometer data
 
     print("Inserting into SQLite database...")

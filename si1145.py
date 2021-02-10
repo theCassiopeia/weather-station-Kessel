@@ -4,10 +4,6 @@
 
 from Adafruit_I2C import Adafruit_I2C
 
-# TODO logging shows that IR measurement is varying according to the room-lights being on or off
-#   VIS light is however constant around 280
-#    ????
-
 
 # ===========================================================================
 # SI1145 Class
