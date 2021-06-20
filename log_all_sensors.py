@@ -19,6 +19,10 @@ I2C_address_SI1145 = 0x60
 I2C_address_BMP180 = 0x77
 I2C_address_SCD30 = 0x61
 
+uv_sensor = None
+temp_probe = None
+BMP180 = None
+scd30 = None
 
 # initialize all sensor-output parameters to None
 temp_DS18B20 = None
@@ -38,32 +42,32 @@ EN_SCD30 = True
 
 data_retrieval = True
 
-bus = smbus.SMBus(1) # 1 indicates /dev/i2c-1
+bus = smbus.SMBus(1)      # 1 indicates /dev/i2c-1
 
 if debug:
     for device in range(128):
         try:
             bus.read_byte(device)
             print(hex(device))
-        except:  # exception if read_byte fails
+        except Exception:  # exception if read_byte fails
             pass
 
 
 try:
     bus.read_byte(I2C_address_BMP180)
-except:
+except Exception:
     EN_BMP180 = False
 try:
     bus.read_byte(I2C_address_SI1145)
-except:
+except Exception:
     EN_SI1145 = False
 try:
     bus.read_byte(I2C_address_SCD30)
-except:
+except Exception:
     EN_SCD30 = False
 try:
     temp_probe = ds18b20_therm.DS18B20()
-except:
+except Exception:
     EN_DS18B20 = False
 
 if debug:
@@ -79,18 +83,6 @@ if EN_DS18B20:
     temp_probe = ds18b20_therm.DS18B20()
 if EN_SI1145:
     uv_sensor = si1145.SI1145()
-
-
-
-"""
-# How long to wait (in seconds) between measurements.
-This is replaced by a cron job
-FREQUENCY_SECONDS = 5*60
-if debug:
-    FREQUENCY_SECONDS = 30
-print('Logging sensor measurements to {0} every {1} seconds.'.format(GDOCS_SPREADSHEET_NAME, FREQUENCY_SECONDS))
-print('Press Ctrl-C to quit.')
-"""
 
 # Append the data in the sqlite-database, including a timestamp
 try:
@@ -114,7 +106,7 @@ try:
             gdr = scd30.get_data_ready()
             if debug:
                 print("Get Data Ready flag : ", gdr)
-                print("pogingen : ", t, "\n")
+                print("Trials : ", t, "\n")
         if gdr:
             m = scd30.read_measurement()
             scd30_co2 = round(m[0], 2)
@@ -135,14 +127,12 @@ try:
         print("Visible Light            : %d lux", ambient_light)
         print("IR Light                 : %d lux", IR_light)
 
-
-
-    # air_qual = tgs2600.TGS2600(adc_channel = 0)
+    # air_quality = tgs2600.TGS2600(adc_channel = 0)
     # humidity = HTU21D.HTU21D()
     # wind_dir = wind_direction.wind_direction(adc_channel = 0, config_file="wind_direction.json")
     # interrupts = interrupt_client.interrupt_client(port = 49501)
 
-except:
+except Exception:
     # Error appending data, most likely because credentials are stale.
     # Null out the worksheet so a login is performed at the top of the loop.
     print('Data retrieval error')
@@ -158,16 +148,16 @@ if data_retrieval:
 
         print("Inserting into SQLite database...")
     # Need to use None instead of "null"
-        db.insert(temp_DS18B20, temp_BMP180, scd30_co2, pressure_BMP180, scd30_rh, scd30_temp, None, None, None, uv_index,
-                  ambient_light, IR_light, None)
-    # db.insert(humidity.read_temperature(), temp_probe.read_temp(), air_qual.get_value(), pressure.get_pressure(),
+        db.insert(temp_DS18B20, temp_BMP180, scd30_co2, pressure_BMP180, scd30_rh, scd30_temp, None, None, None,
+                  uv_index, ambient_light, IR_light, None)
+    # db.insert(humidity.read_temperature(), temp_probe.read_temp(), air_quality.get_value(), pressure.get_pressure(),
     # humidity.read_humidity(), wind_average, interrupts.get_wind(), interrupts.get_wind_gust(),
     # interrupts.get_rain())
         print("done")
 
     # interrupts.reset()
 
-    except:
-    # Error appending data, most likely because credentials are stale.
-    # Null out the worksheet so a login is performed at the top of the loop.
+    except Exception:
+        # Error appending data, most likely because credentials are stale.
+        # Null out the worksheet so a login is performed at the top of the loop.
         print('Append error')
